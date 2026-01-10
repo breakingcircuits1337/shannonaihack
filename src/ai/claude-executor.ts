@@ -237,8 +237,16 @@ async function runClaudePrompt(
       };
     }
 
+    // Determine model - default to Claude Sonnet 4.5 but allow Gemini override
+    const isGeminiMode = process.env.SHANNON_MODEL_PROVIDER === 'gemini';
+    const model = isGeminiMode ? 'gemini-3.0-pro-001' : 'claude-sonnet-4-5-20250929';
+
+    if (isGeminiMode) {
+      console.log(chalk.blue(`    🔮 Using Model: ${model} (via Antigravity Proxy)`));
+    }
+
     const options = {
-      model: 'claude-sonnet-4-5-20250929', // Use latest Claude 4.5 Sonnet
+      model,
       maxTurns: 10_000, // Maximum turns for autonomous work
       cwd: sourceDir, // Set working directory using SDK option
       permissionMode: 'bypassPermissions' as const, // Bypass all permission checks for pentesting
