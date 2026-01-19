@@ -42,6 +42,9 @@ export function showHelp(): void {
   console.log(
     '  --disable-loader     Disable the animated progress loader (useful when logs interfere with spinner)\n'
   );
+  console.log(
+    '  --gemini / --antigravity  Enable Gemini 3.0 mode via Antigravity Proxy'
+  );
 
   console.log(chalk.yellow.bold('DEVELOPER COMMANDS:'));
   console.log(

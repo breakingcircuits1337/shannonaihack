@@ -40,6 +40,7 @@ import { formatDuration, generateAuditPath } from './audit/utils.js';
 import { handleDeveloperCommand } from './cli/command-handler.js';
 import { showHelp, displaySplashScreen } from './cli/ui.js';
 import { validateWebUrl, validateRepoPath } from './cli/input-validator.js';
+import { setupGeminiProxy } from './setup/gemini-proxy.js';
 
 // Error Handling
 import { PentestError, logError } from './error-handling.js';
@@ -431,6 +432,7 @@ let configPath: string | null = null;
 let outputPath: string | null = null;
 let pipelineTestingMode = false;
 let disableLoader = false;
+let useGemini = false;
 const nonFlagArgs: string[] = [];
 let developerCommand: string | null = null;
 const developerCommands = ['--run-phase', '--run-all', '--rollback-to', '--rerun', '--status', '--list-agents', '--cleanup'];
@@ -456,6 +458,8 @@ for (let i = 0; i < args.length; i++) {
     pipelineTestingMode = true;
   } else if (args[i] === '--disable-loader') {
     disableLoader = true;
+  } else if (args[i] === '--gemini' || args[i] === '--antigravity') {
+    useGemini = true;
   } else if (developerCommands.includes(args[i]!)) {
     developerCommand = args[i]!;
     // Collect remaining args for the developer command
@@ -483,6 +487,19 @@ for (let i = 0; i < args.length; i++) {
 if (args.includes('--help') || args.includes('-h') || args.includes('help')) {
   showHelp();
   process.exit(0);
+}
+
+// Setup Gemini Proxy if requested (done before validation/developer commands)
+if (useGemini) {
+  try {
+    await setupGeminiProxy();
+  } catch (error) {
+     if (error instanceof PentestError) {
+         console.log(chalk.red(`❌ ${error.message}`));
+         process.exit(1);
+     }
+     throw error;
+  }
 }
 
 // Handle developer commands
@@ -541,6 +558,9 @@ if (pipelineTestingMode) {
 }
 if (disableLoader) {
   console.log(chalk.yellow('⚙️  LOADER DISABLED - Progress indicator will not be shown\n'));
+}
+if (useGemini) {
+  console.log(chalk.cyan('🔮 GEMINI 3.0 MODE ENABLED - Using Antigravity Proxy\n'));
 }
 
 try {
